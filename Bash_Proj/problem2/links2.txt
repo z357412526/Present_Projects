@@ -1,0 +1,7 @@
+http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-countries.txt
+http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-inventory.txt
+http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-states.txt
+http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt
+http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-version.txt
+http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt
+http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/status.txt

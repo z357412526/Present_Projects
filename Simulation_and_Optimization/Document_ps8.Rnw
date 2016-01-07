@@ -1,0 +1,380 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{hyperref}
+\usepackage{graphicx} 
+\usepackage{amsmath} 
+\usepackage{amscd} 
+\usepackage{float} 
+\usepackage{geometry}
+\usepackage{paralist}
+\usepackage{wrapfig}
+\usepackage{framed}
+\usepackage{amsfonts,verbatim}
+\usepackage{listings}
+\usepackage{bbm}
+
+\usepackage[amsmath,amsthm,thmmarks]{ntheorem} 
+\theoremstyle{plain}
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{cly}{Corollary}[section]
+\renewcommand{\qedsymbol}{\blacksquare}
+\renewcommand*{\thethm}{\arabic{thm}}
+\renewcommand*{\thecly}{\arabic{cly}}
+
+\title{STAT 243: Promlem Set 8}
+\author{Xinyue Zhou}
+
+
+\begin{document}
+\maketitle
+\section{Question 1}
+\subsection {a}
+I used following three steps to generate the dataset and evaluate standard linear model against robust linear model.
+\begin{itemize}
+\item First of all, a testing data set should be generate here. To get the general results, the number of variables, saying $X_i$ should varies. Our data set is generate from the following model:\\
+\begin{align}
+Y_i = \beta_0+ \Sigma^p_{k=1}\beta_k X_i+\epsilon_i\\
+\epsilon_i \sim \begin{cases} Normal&\mbox{w.p. } \alpha \\ 
+distribution_2&\mbox{w.p. } 1-\alpha \end{cases} 
+\end{align}
+
+Show in the above model, $\alpha$ percentage of data is from regular, or expected, data set, and $1-\alpha$ are outliers, where $\alpha$ smaller than 50\% . $\beta$ 's are known at beginning, so after $\epsilon_i$ 's are decided and a sequence of $X_i$'s, $Y_i$'s are got from summation as shown in (1). Notice that $distribution_2$ should be very different from Normal distribution in the first case.
+
+\item Fit the model using two different method.
+
+\item Evaluate the performance of two models using two measurements: 1) absolute predict error(MAPE); 2) coverage of prediction intervals (CPI)\\
+\begin{align}
+MAPE = \frac{1}{N}\left| Y_i - \hat{Y_i} \right|\\
+CPI = \frac{1}{N} \mathbbm{1}\{Y_i\in C_i\}
+\end{align}
+In the above equations, CI are prediction intervals calculated using bootstrap. The input of bootstrap is the new data set and the output is bunch of $\hat{Y}$ values calculating from bootstrap samples. The smaller MAPE and the larger CPI is, the better performance of the model will be.
+\end{itemize}
+
+\subsection{b}
+Here, I create a concrete case to test the performance of standard linear model against robust linear model (using R package \textit{MASS}, and function \textit{rlm}).
+<<eval=TRUE>>=
+library(MASS)
+#generate data set
+dataset <- function(p=0,beta,alpha=0,N){
+  X<- matrix(numeric(N*(p+1)),ncol = p+1)
+  X[,1] = rep(1,N)
+  for (i in 2:ncol(X)) {X[,i] = runif(N,-10,10)}
+  tmp <-(runif(N)<alpha)
+  e <- numeric(N)
+  #draw outlier
+  e[tmp]<- rnorm(sum(tmp),0,100)
+  #draw regular data
+  e[tmp==FALSE] <- rnorm(N-sum(tmp),0,1)
+  Y = X%*%beta+e
+  return (cbind(Y,X[,-1]))
+}
+
+
+data = dataset(3,c(1,2,3,4),0.1,100)
+fit1 = lm(data[,1]~data[,-1])
+fit2 = rlm(data[,1]~data[,-1])
+fit1$coefficients
+fit2$coefficients
+
+#create a new obs set, and store new Y
+new_data = dataset(3,c(1,2,3,4),0.1,20)
+new_Y = new_data[,1]
+new_X = cbind(rep(1,20),new_data[,-1])
+
+#calculate the fitted values
+Y_fit1 = new_X%*%fit1$coefficients
+Y_fit2 = new_X%*%fit2$coefficients
+
+#evaluate the predict absolute error here.
+Mape1 = mean(abs(Y_fit1-new_Y))
+Mape2 = mean(abs(Y_fit2-new_Y))
+c(Mape1 = Mape1,Mape2 = Mape2)
+@
+As \textit{Mape2} is smaller than \textit{Mape1}, the robust regression is much better for fitting data set with bunch of outliers.
+
+\section{Question 2}
+\subsection{a}
+To visualize the tail shape of exponential distribution and pareto distribution, I plot these two distributions together. Note, this too density is using the same rate (rate=1).
+<<eval=TRUE>>=
+require(actuar)
+alpha = 1
+beta = 2
+x = seq(alpha,alpha+10,length = 500)
+pareto_x = dpareto(x,scale = alpha,shape = beta)
+plot (x, pareto_x,type="l",col = "red")
+lines(x,dexp(x,rate=beta))
+@
+\subsection{b}
+
+As \textit{f} is the exp(1) shift 2 units to right, then the density of f is:
+\begin{equation}
+f(x) = e^{-(x-2)}
+\end{equation}
+
+For the sampling density, $g\sim Pareto(\alpha=2,\beta=3)$, then:
+\begin{equation}
+g(x) = \frac{\beta \alpha^{\beta}}{x^{\beta+1}} = \frac{24}{x^4}
+\end{equation}
+
+To approximate the expectation of \textit{f} distribution, importance sampling can be used here:\\
+\begin{align}
+E_f(h(X)) = \int_{x\in \chi} h(x)\frac{f(x)}{g(x)} g(x) dx\\
+E_f(X) \approx \frac{1}{m}\Sigma_{i=1}^m X_i \times \frac{f(X_i)}{g(X_i)}\\
+E_f(X^2) \approx \frac{1}{m}\Sigma_{i=1}^m X_i^2 \times \frac{f(X_i)}{g(X_i)}
+\end{align}
+\textbf{Algorithm}:
+\begin{itemize}
+\item First draw m=10000 samples from \textit{g(x)}.
+\item Estimate $E_f(X)$ and $E_f(X^2)$ using (7), (8).
+\end{itemize}
+
+Note that the variance of $\hat{\mu}$ can be get using:
+\begin{equation}
+Var(\hat{\mu}) = \frac{1}{m}Var\left( h(X) \frac{f(X)}{g(X)}\right)
+\end{equation}
+<<eval=TRUE>>=
+library(actuar)
+#Note the formular for pareto is slightly different from the one in the prob
+m = 10000
+alpha = 2
+beta = 3
+#draw samples
+x = rpareto(m,scale = alpha,shape = beta)+alpha
+f_over_g = exp(-x+2)/(24/x^4)
+#E(x)
+w_x = f_over_g *x
+w_x2 = f_over_g *x^2
+mu_est = mean(w_x)
+mu_est
+#E(x^2)
+sec_mom_est = mean(w_x2)
+sec_mom_est
+
+#draw the histogram of h(x)f(x)/g(x)
+par(mfrow = c(1,2))
+hist(w_x,breaks = 50, main = "Hist of h(x)f(x)/g(x) when h(X)=X")
+hist(w_x2,breaks = 50, main = "Hist of h(x)f(x)/g(x) h(X)=X^2")
+
+#calculate the variance of estimate:
+var_mu = var(w_x)/m
+var_sec_mom = var(w_x2)/m
+c(var_mu = var_mu, var_second_mom = var_sec_mom)
+@
+
+\subsection{c}
+Repeat the same thing as in part \textbf{b}, just exchange the sampling distribution and target distribution. The results is as followed.
+<<eval=TRUE>>=
+#draw samples
+x = rexp(m)+1
+f_over_g = (24/x^4)/exp(-x+2)
+#E(x)
+w_x = f_over_g *x
+w_x2 = f_over_g *x^2
+mu_est = mean(w_x)
+mu_est
+#E(x^2)
+sec_mom_est = mean(w_x2)
+sec_mom_est
+
+#draw the histogram of h(x)f(x)/g(x)
+par(mfrow = c(1,2))
+hist(w_x,breaks = 50, main = "Hist of h(x)f(x)/g(x) h(X)=X")
+hist(w_x2,breaks = 50, main = "Hist of h(x)f(x)/g(x) h(X)=X^2")
+
+#calculate the variance of estimate:
+var_mu = var(w_x)/m
+var_sec_mom = var(w_x2)/m
+c(var_mu = var_mu, var_second_mom = var_sec_mom)
+@
+Compare the variance of $\hat{\mu}$ in both Part\textbf{b} and Part\textbf{c}, the one in Part\textbf{c} is much larger than that in b. The result is consistent with the fact that selected sample distribution should own a heavier tail than the target distribution, which can promise a better result of estimation.
+
+\section{Question 3}
+\subsection{a}
+Generally speaking, the EM algorithm is as followed:
+\begin{itemize}
+\item E step: Compute $Q(\theta | \theta_t)$, ideally calculating the expectation over the missing data in closed form. Note that log $L(\theta|Y )$ is a function of $\theta$ so $Q(\theta | \theta_t)$ will involve both $\theta$ and $\theta_t$.
+\item M step: Maximize $Q(\theta|\theta_t)$ with respect to $\theta$, finding $\theta_t$.
+\item Continue until convergence.
+\end{itemize}
+To implement it on this setup, first of all, I calculate $Q(\theta | \theta_t)$.
+\begin{align}
+L(\boldsymbol\beta|Y,Z) &= \prod_i f(Y_i,Z_i|\boldsymbol\beta) \notag\\
+&=\prod_i f_Z(Z_i|\boldsymbol\beta) f_Y(Y_i|Z_i,\boldsymbol\beta)\notag \\
+&=\prod_i \frac{1}{\sqrt{2\pi}} exp\left(-\frac{1}{2}(Z-X_i^T\boldsymbol\beta)^2\right)
+ \mathbbm{1}\{Z_i>0\}^{Y_i} (1-\mathbbm{1}\{Z_i>0\})^{(1-{Y_i}) }
+\end{align}
+Therefore:\\
+\begin{align}
+l(\boldsymbol\beta|Y,Z) &=log( L(\boldsymbol\beta|Y,Z))\notag\\
+& = c + \sum_i \left(-\frac{1}{2}(Z-X_i^T\boldsymbol\beta)^2\right)+
+\sum log\left( \mathbbm{1}\{Z_i>0\}^{Y_i} (1-\mathbbm{1}\{Z_i>0\})^{(1-{Y_i})}\right)
+\end{align}
+Notice that the last term of (16) is always 0. As we can ignore the constant term when optimize the function, I just ignore it from now on.\\
+
+\begin{align}
+Q(\boldsymbol\beta_t|\boldsymbol\beta_t) & = E\left[ l(\boldsymbol\beta|y,z) |\cdotp \right] \notag\\
+& = \sum_i E \left(-\frac{1}{2}(Z-X_i^T\boldsymbol\beta)^2 |\cdotp\right)\notag\\
+& = \frac{1}{2}E\left(Z_i^2|\cdotp\right) +X_i^T\boldsymbol\beta E\left(Z_i | \cdotp\right)
+-\frac{1}{2}\left(X_i^T \boldsymbol\beta\right|\cdotp)^2
+\end{align}
+Then maximize $Q(\boldsymbol\beta|\boldsymbol\beta_t)$ to get $\hat{\boldsymbol\beta}_{t+1}$
+\begin{align}
+\hat{\boldsymbol\beta}_{t+1} & = \textbf{Argmax}_{\beta}
+Q(\boldsymbol\beta|\boldsymbol\beta_t)\notag \\ 
+& = \textbf{Argmin}_{\beta} \frac{1}{2}\left(X_i^T \boldsymbol\beta\right|\cdotp)^2 - X_i^T\boldsymbol\beta E\left(Z_i | \cdotp\right)
+\end{align}
+Take derivative and solve (14), I get:
+\begin{equation}
+\hat{\boldsymbol\beta}_{t+1} = (X^TX)^{-1}X^TE(Z|\cdotp)
+\end{equation}
+See the equation (16) is very like estimating parameter of multiple linear regression under OLS.
+
+From Johnson and Kotz bibles on distributions I found that :
+\begin{align*}
+E[Z_i|Y_i,X_i,\boldsymbol\beta_t] = \begin{cases} 
+E[Z_i|Z_i>0,X_i,\boldsymbol\beta_t] 
+=  X_i^T\boldsymbol\beta_t
++\frac{\phi(-X_i^T\boldsymbol\beta_t)}{1-\Phi(-X_i^T\boldsymbol\beta_t)}
+&\mbox{ when } Y_i = 1 \\ 
+E[Z_i|Z_i<0,X_i,\boldsymbol\beta_t] 
+=  X_i^T\boldsymbol\beta_t
+-\frac{\phi(-X_i^T\boldsymbol\beta_t)}{\Phi(-X_i^T\boldsymbol\beta_t)}
+&\mbox{ when } Y_i = 0
+\end{cases} 
+\end{align*}
+
+\subsection{b}
+See the equation (22) is pretty like estimating parameter of multiple linear regression under OLS, and $E(Z|\cdotp)$ is closely related with $Z_i$. Therefore, it is reasonable to following term to initialize the algorithm.
+\begin{equation}
+\beta_0 = (X^TX)^{-1}X^TY
+\end{equation}
+
+\subsection{c}
+Imprement the algorithm under this setup:
+<<eval =TRUE>>=
+options(digits = 4)
+#generate data set
+n = 100
+beta = c(1,1,0,0)
+set.seed(0)
+Xs = cbind(rep(1,n),matrix(rnorm(3*n),ncol = 3))
+P_z = pnorm(0,mean = Xs%*%beta, lower.tail = FALSE)
+Y = sapply(P_z, function(x)return(rbinom(1, 1, x)))
+
+JK <- function(Xs, Y, beta){ 
+  ret = numeric(length(Y))
+  Xbt = Xs %*% beta
+  mask = as.logical(Y)
+  ret[mask] = Xbt[mask]+dnorm(-Xbt[mask])/(1-pnorm(-Xbt[mask]))
+  ret[!mask] = Xbt[!mask]-dnorm(-Xbt[!mask])/pnorm(-Xbt[!mask])
+  return(ret)
+}
+
+regr_beta <- function(Xs,JKvalue){
+  return(lm(JKvalue~Xs[, 2:4])$coefficients)
+}
+
+EM_beta <- function(beta0,Xs, Y, rate = 1e-06, step = 1000){ 
+  beta_t = beta0
+  beta_t_1 = regr_beta(Xs, JK(Xs,Y,beta_t))
+  it = 0
+  while(max(abs(beta_t_1-beta_t)) > rate && it < step){
+      beta_t = beta_t_1
+      beta_t_1 = regr_beta(Xs,JK(Xs,Y,beta_t))
+      it = it + 1
+  }
+  list (beta_hat = beta_t_1, steps = it) 
+}
+
+EM_beta(lm(Y~Xs[, 2:4])$coefficients,Xs,Y)
+@
+\subsection{d}
+In the previous section, I found that it takes EM method 182 iteration to converge. Next BFGS method was directly applied to maximize the log-likelihood of the observed data.Derive log-likelihood as followed:
+\begin{align}
+f_Y(Y|X,\boldsymbol\beta) &= \sum_i \Phi(X_i^T\boldsymbol\beta)^{Y_i}
+(1-\Phi(X_i^T\boldsymbol\beta))^{1-Y_i}\notag\\
+l(\boldsymbol\beta|Y,Z) &= \sum_i Y_i log(\Phi(X_i^T\boldsymbol\beta))
++(1-Y_i)log(1-\Phi(X_i^T\boldsymbol\beta))
+\end{align}
+Then, \textit{optim()} is used to maximize log-likelihood function.
+<<eval=TRUE>>=
+log_lik <- function(beta){
+sum(Y*log(pnorm(Xs %*% beta)) + (1-Y)*log(1-pnorm(Xs %*% beta)))
+}
+beta0 = lm(Y~Xs[, 2:4])$coefficients
+optim(beta0, log_lik, method="BFGS", control=list(fnscale=-1))
+@
+Compared with the results in Part \textbf{b}, BFGS algorithm applied on log-likelihood takes less step to converge.
+
+\section{Question 4}
+First of all, I draw slices of the function to get a general idea of the location of the minima.
+<<eval=TRUE>>=
+#this file is given
+theta <- function(x1,x2) atan2(x2, x1)/(2*pi)
+
+f <- function(x) {
+  f1 <- 10*(x[3] - 10*theta(x[1],x[2]))
+  f2 <- 10*(sqrt(x[1]^2+x[2]^2)-1)
+  f3 <- x[3]
+  return(f1^2+f2^2+f3^2)
+}
+# plot it
+#install.packages("fields")
+#for (x3 in c(-5,0,5))
+# image(), contour() persp() 
+library(fields)
+par(mfrow=c(3, 3))
+n = 200
+x1 = seq(-5, 5, length.out = n)
+x2 = seq(-5, 5, length.out = n)
+x3 = seq(-5, 5, length.out = n)
+par(mfrow=c(3, 3))
+## fix x1
+for (k in c(-3,0,3)){
+f_res = apply(expand.grid(x1, x2), 1, 
+              function(x) {return(f(c(x, k)))})
+image.plot(x1, x2, matrix(f_res, ncol = n), main = paste("Fix x3 = ", k)) }
+## fix x2
+for (k in c(-3,0,3)){
+f_res = apply(expand.grid(x1, x3), 1, 
+              function(x) {return(f(c(x[1], k, x[2])))}) 
+image.plot(x1, x3, matrix(f_res, ncol = n), main = paste("Fix x2 = ", k))
+}
+## fix x3
+for (k in c(-3,0,3)){
+f_res = apply(expand.grid(x2, x3), 1, 
+              function(x) {return(f(c(k, x)))}) 
+image.plot(x2, x3, matrix(f_res, ncol = n), main = paste("Fix x1 = ", k))
+}
+@
+
+Then, two functions are used for explore the minimum value of the function. In addition, several initial values are also been tried to test the step used for  converging. I used \textit{optimx()} function in  \textit{optimx package} to compare the result of each method. The results is shown as followed, in which various initial point is choosed.
+
+<<eval=TRUE>>=
+options(digits = 16)
+# install.packages("optimx")
+require(optimx)
+optim(c(1,1,1),f, method = "Nelder-Mead")
+see = optimx(c(1, 5, 1), f, method = c("Nelder-Mead", "BFGS",  "nlm"))
+a = seq(-5,5,length.out =5)
+init_set = expand.grid(a,a,a)
+#optimize it
+minima = numeric(3*nrow(init_set))
+for (i in 1:nrow(init_set)) {
+  #print((3*(i-1)+1):(3*(i-1)+3))
+  minima[(3*(i-1)+1):(3*(i-1)+3)] = 
+    optimx(as.matrix(init_set)[i,], f, method = c("Nelder-Mead", "BFGS",  "nlm"))$value
+}
+summary(minima)
+init_set[as.integer(which(minima>1)/3),]
+
+#see which method give us extreme values
+#0:"Nelder-Mead",1: "BFGS",  2: "nlm"
+which(minima>.5)%%3
+@
+After I select bunch of initial value range from -5 to +5, and store the minima of each method based on those initial values. Almost all the minima are less than 0.001 and $(p_1,p_2,p_3)$ is just around (1,0,0). Therefore I can conclude that 0 is the global minima, and the corresponding coordinate is (1,0,0).
+
+Then let me focus on the extreme value. Two of them don't even converge. These phenomenon happens when $x_1, x_3$ are large. On the other hand, among three method I tried, only "BFGS" did not slip to extreme values/local minimum, indicating that BFGS method is prefered in this case.
+
+
+\end{document}

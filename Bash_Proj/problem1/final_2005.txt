@@ -1,0 +1,5 @@
+Turkey,31,Area Harvested,2005,Ha,60000.00000,
+Islamic Republic of,31,Area Harvested,2005,Ha,49388.00000,
+Pakistan,31,Area Harvested,2005,Ha,28884.00000,
+Uzbekistan,31,Area Harvested,2005,Ha,28000.00000,
+Algeria,31,Area Harvested,2005,Ha,22888.00000,

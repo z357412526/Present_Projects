@@ -1,0 +1,484 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\title{STAT243: PS 4}
+\author{Xinyue Zhou}
+\begin{document}
+\maketitle
+\noindent \textbf{1.}\\
+\noindent \textbf{a) Locate the problem}\\
+First of all, I tried repeat the process outside of the function. I find each time I reload the "tmp.Rda", the location of the sequence is 1, which is the return value of $.Random.seed[2]$. And each time I run $runif(1)$, the location of the sequence increment by 1.\\
+When it comes to the function, I find even it seems I reload "tmp.Rda" each time I call the function, which is suppose to give me the same answer everytime. However, it doesn't. So I check the position of the .Random.seed sequence by printing it out. I find out even I load the "tmp.Rda" time to time, when I run the function, the position of sequence is still there. This makes suspect that run the function actually move the position on the .Random.seed on the global environment. This is proved by print out $.Random.seed[2]$ before load the "tmp.Rda". I find that position is change on global environment each time I call the function.\\
+<<>>=
+set.seed(0) 
+runif(1)
+save(.Random.seed, file = 'tmp.Rda')
+runif(1)
+load('tmp.Rda') 
+.Random.seed[2]
+runif(1)
+
+library(pryr)
+tmp <- function() { 
+  print("Location of Random seed 1: ")
+  print(where(".Random.seed"))
+  cat("position on global env:", .Random.seed[2], "\n")
+  load('tmp.Rda') 
+  print("Location of Random seed 2: ")
+  print(where(".Random.seed"))
+  cat("position on local env:", .Random.seed[2], "\n")
+  a = runif(1)
+  cat("position on local env after generating a random number:", .Random.seed[2], "\n")
+  return(a)
+} 
+tmp()
+@
+\noindent \textbf{b) Solve the problem}\\
+After locating the problem, solving is easy. I just add one more option in load command, to let the it load from global to the local function. See the result, which is favorable.
+<<>>=
+library(pryr)
+tmp <- function() { 
+  print("Location of Random seed 1: ")
+  print(where(".Random.seed"))
+  cat("position on global env:", .Random.seed[2], "\n")
+  load('tmp.Rda', env=.GlobalEnv) 
+  print("Location of Random seed 2: ")
+  print(where(".Random.seed"))
+  cat("position on local env:", .Random.seed[2], "\n")
+  a = runif(1)
+  cat("position on local env after generating a random number:", .Random.seed[2], "\n")
+  return(a)
+} 
+tmp()
+@
+
+\noindent \textbf{2.}\\
+First of all, load all the packages that are needed.\\
+<<>>=
+require(utils)
+require(microbenchmark)
+@
+\noindent \textbf{a)}\\
+In the main function, I create another help function with parameter k, which is used to calculate the denominator. Then I apply the inner function to the sequence of k. Here is a tricky part: I calculate the first and last element in k separately. Since $0\times log(0)$makes no sense, I calculate $0^0$ instead.\\
+<<>>=
+p = .3
+phi = .5
+#n = 2 
+sum_f <- function(p,phi,n) {
+  if(n<=0) {return("n is not valid")}
+  else if(n==1) {return(p^(n*phi)+(1-p)^(n*phi))}
+  logf <- function(k){
+  coef = lchoose(n,k) #directly return log value of combination
+  ret = coef+(phi-1)*(n*log(n)-k*log(k)-(n-k)*log(n-k))+
+    k*phi*log(p)+(n-k)*phi*log(1-p)
+  return(exp(ret))
+  }
+  k = seq(0,n)
+  ret1 = sum((sapply(k[2:(length(k)-1)], logf)))
+  ret2 = p^(n*phi)+(1-p)^(n*phi)
+  return(ret1+ret2)
+}
+microbenchmark(sum_f(p,phi,2000))
+
+@
+\noindent \textbf{b)}\\
+In \textbf{b)}, I directly pass k in as a vector and return value is a vector too. In this way, I can implement it without using loop.\\ 
+<<>>=
+sum_f_vec <- function(p,phi,n) {
+  if(n==0) {return("n is not valid")}
+  else if(n==1) {return(p^(n*phi)+(1-p)^(n*phi))}
+  #pass k as vector here
+  logf <- function(k){
+    coef = lchoose(n,k)
+    ret = coef+(phi-1)*(n*log(n)-k*log(k)-(n-k)*log(n-k))+
+      k*phi*log(p)+(n-k)*phi*log(1-p)
+    return(exp(ret))
+  }
+  k = seq(0,n)
+  #print(exp(logf(k[2:(length(k)-1)])))
+  ret1 = sum(logf(k[2:(length(k)-1)]))
+  ret2 = p^(n*phi)+(1-p)^(n*phi)
+  return(ret1+ret2)
+}
+microbenchmark(sum_f(p,phi,2000),sum_f_vec(p,phi,2000))
+@
+By comparing part a) and part b), the vectorized method can improve the efficiency by two magnitude order.\\
+
+\noindent \textbf{3.}\\
+First of all, load all the packages that are needed:
+<<>>=
+load("mixedMember.Rda")
+require(compiler)
+require(microbenchmark)
+@
+\noindent \textbf{a)}
+This is just a most straightforward way doing so.
+<<>>=
+#a
+sum_a_ret = sapply(1:100000,sum_a<-function(i) 
+  sum(wgtsA[[i]]*muA[IDsA[[i]]]))
+sum_b_ret = sapply(1:100000,sum_b<-function(i) 
+  sum(wgtsB[[i]]*muB[IDsB[[i]]]))
+@
+\noindent \textbf{b)}
+Let's improve Case A. {\em sapply/lapply/apply }are just internal for loops writing in C++. Although it can more efficient than using loops in R, but it's better to avoid loop. One way to do it is convert the data into matrix form, and use Colsum function instead of using for loop.\\
+Here is a tricky part. When convert data into a matrix, as the list in ID or weight are not in the same length, we should find out the longest list. And if the list is short of elements, we complement it using length(ID)+1. For mu vector, I add one more element 0 in the end (like for case A, the empty value is substitude by 1001). Therefore, when I select $\mu$ using ID, as it comes to empty one, it automatically selete 0 in weight, which is favored.
+<<>>=
+#b
+transfer_matrix<-function(list){
+  n=length(list)
+  max_len = max(sapply(list,length))
+  max_num = max(sapply(list,max))
+  ##
+  for (i in 1:n){
+    if (length(list[[i]])<max_len)
+      list[[i]]=c(list[[i]],rep(max_num+1,max_len-length(list[[i]])))
+  }
+  mat =array(unlist(list),c(max_len,length(list)))
+  return(mat)
+}
+#transfer_matrix(list)
+##change the data object to store IDdata and weight data
+IDsA_mat = transfer_matrix(IDsA)
+wgtsA_mat = transfer_matrix(wgtsA) 
+##observe some of the value is larger than one
+##those are invalid data and we can just leave it there
+muA_mat = c(muA,0)
+IDsB_mat = transfer_matrix(IDsB)
+wgtsB_mat = transfer_matrix(wgtsB) 
+##observe some of the value is larger than one
+##those are invalid data and we can just leave it there
+muB_mat = c(muA,0)
+##test the time of them
+microbenchmark(sapply(1:100000,
+                      sum_a<-function(i) sum(wgtsA[[i]]*muA[IDsA[[i]]]))
+               ,colSums(wgtsA_mat*muA_mat[IDsA_mat]))
+@
+\noindent \textbf{c)}
+It is not enough to improve the case B, let's finish it in a more genius way. As in case B, there are only 10 ID numbers. Therefore, we can directly using matrix multiplication.\\
+<<>>=
+weight_convert<-matrix(0,nr=length(wgtsB),nc=length(muB))
+for (i in 1:nrow(weight_convert)){
+  weight_convert[i,IDsB[[i]]]<-wgtsB[[i]]
+}
+microbenchmark(
+  ret<-as.vector(weight_convert%*%muB),
+      sapply(1:100000,sum_b<-function(i) sum(wgtsB[[i]]*muB[IDsB[[i]]])))
+@
+\noindent \textbf{d)} It has been included in b) and c)\\
+
+\noindent \textbf{4.}\\
+\noindent \textbf{a) and b)}\\
+First of all I set variables we need in test this problem.
+<<>>=
+require(pryr)
+set.seed(0)
+y=rnorm(1000000)
+x1=rnorm(1000000)
+x2=rnorm(1000000)
+x3=rnorm(1000000)
+print(mem_used()) #see the memory used at very beginning.
+@
+To write the report in a compressed manager, the inspect processes are all finished in one step. First of all, I set 7 nodes to inspect which part in the function cost the most memory.\\
+Specifically, see the one of the special node called "PART A", which show the memory usage after fitting the model and creating the object z. \\
+Here I will list several weired discoveraries without explanation, which associated with the internal storage and processing of the data.\\
+ 1. In the node 2, after the function creating two objects called ret.x, ret.y, the usage of memory is actually decreased.\\
+ 2. In the step creating x and y, it does cost lots of memory, but there is a discrepancy with the object size of x and y. For example, the size of x is 88MB, while the step that creating x just costs 40MB in the RAM.\\
+After several trials, I find that it is in following step exhaust the memory:\\
+\begin{itemize}
+  \item The creating of object mf
+  \item The creating of object x
+  \item The creating of object y
+\end{itemize}
+Before I start to revise the lm function, I need to figure out why these three object occupies such a large space on the RAM. Actually, this objects are much more larger than what we expect. Take x for example. x occupies more than 80MB, while itself is just a 1000000$\times$4 matrix. I expect it just used about 32MB memory on RAM. After taking a closed look at internal storage of x, I find there are many unused attributes also stored in object x, which is unecessarily occupying the space. It is the same case for y.\\
+There is a way to improve the function in terms of the structure of x and y. I can set all the tag in x and y to be NULL and delete all the attributes that are unecessary for fitting the model. This will be shown in the next part.\\
+
+<<>>=
+lm_my<-function (formula, data, subset, weights, na.action, method = "qr", 
+                 model = TRUE, x = FALSE, y = FALSE, qr = TRUE, singular.ok = TRUE, 
+                 contrasts = NULL, offset, ...) 
+{
+  #1
+  very_beginning = mem_used()
+  cat("1:Memory used at the beginning of the function"
+      , very_beginning/1000000, "MB","\n")
+  
+  ret.x <- x
+  ret.y <- y
+  #2
+  node2 = mem_used()
+  cat("2:", (node2-very_beginning)/1000000, "MB","\n")
+  
+  cl <- match.call()
+  mf <- match.call(expand.dots = FALSE)
+  m <- match(c("formula", "data", "subset", "weights", "na.action", 
+               "offset"), names(mf), 0L)
+  mf <- mf[c(1L, m)]
+  mf$drop.unused.levels <- TRUE
+  mf[[1L]] <- quote(stats::model.frame)
+  mf <- eval(mf, parent.frame())
+  
+  cat("mf_size:", object_size(mf)/1000000, "MB", "\n") 
+  #get the obj_size of mf
+
+  #3
+  node3 = mem_used()
+  cat("3: memory used after creation of several objs:"
+      ,(node3-node2)/1000000, "MB", "\n")
+  
+  if (method == "model.frame") 
+    return(mf)
+  else if (method != "qr") 
+    warning(gettextf("method = '%s' is not supported. Using 'qr'", 
+                     method), domain = NA)
+  
+  #4
+  node4 = mem_used()
+  #print("4:"); print(node4);print(node4-node3)
+  print("check 4--5")
+  mt <- attr(mf, "terms"); #print(object_size(mt))
+  y <- model.response(mf, "numeric")
+  cat("y size:",object_size(y)/1000000, "MB", "\n")
+  print("get more info of y to diagnose:")
+  print(head(.Internal(inspect(y))))
+  w <- as.vector(model.weights(mf)); #print(object_size(w))
+  
+  #5
+  node5 = mem_used()
+  cat("5: after the creating of mt, y, w objects:"
+      , (node5-node4)/1000000, "MB", "\n")
+  
+  if (!is.null(w) && !is.numeric(w)) 
+    stop("'weights' must be a numeric vector")
+  offset <- as.vector(model.offset(mf))
+  
+  
+  if (!is.null(offset)) {
+    if (length(offset) != NROW(y)) 
+      stop(
+        gettextf("number of offsets is %d, should equal %d (number of observations)"
+                 ,length(offset), NROW(y)), domain = NA)
+  }
+  if (is.empty.model(mt)) {
+    x <- NULL
+    z <- list(
+      coefficients = if (is.matrix(y)) matrix(, 0, 3) 
+      else numeric(), residuals = y, fitted.values = 0 * y
+      , weights = w, rank = 0L, df.residual = if (!is.null(w)) sum(w != 0) 
+      else if (is.matrix(y)) nrow(y) 
+      else length(y))
+    
+    if (!is.null(offset)) {
+      z$fitted.values <- offset
+      z$residuals <- y - offset
+    }
+    #print(head(.Internal(inspect(z))))
+  }
+  else {
+    #5.1
+    
+    x <- model.matrix(mt, mf, contrasts)
+    node5.1 = mem_used()
+    cat("5.1: the memory usage for creating object x"
+        ,(node5.1-node5)/1000000, "MB", "\n")
+    cat("x size:",object_size(x)/1000000, "MB", "\n")
+    #
+    print("get more info of x to diagnose:")
+    print(head(.Internal(inspect(x))))
+    
+    cat("Memory usage before fitting model"
+        ,(node5.1-very_beginning)/1000000, "MB", "\n")
+    z <- if (is.null(w)) {
+      #mem_fit = mem_used()
+      lm.fit(x, y, offset = offset, singular.ok = singular.ok, 
+             ...)
+      #mem_fit <- mem_used()
+    }
+    else lm.wfit(x, y, w, offset = offset, singular.ok = singular.ok, 
+                 ...)
+    print("PART A: after fitting model and creating z")
+    cat("z size:",object_size(z)/1000000,"MB","\n")
+    cat("memory used for creating z:"
+        ,(mem_used()-node5.1)/1000000, "MB", "\n")
+  }
+  #6
+  node6 = mem_used()
+  cat("6: after fit the model"
+      ,(node6-node5)/1000000,"MB","\n")
+  
+  class(z) <- c(if (is.matrix(y)) "mlm", "lm")
+  z$na.action <- attr(mf, "na.action")
+  z$offset <- offset
+  z$contrasts <- attr(x, "contrasts")
+  z$xlevels <- .getXlevels(mt, mf)
+  z$call <- cl
+  z$terms <- mt
+  if (model) 
+    z$model <- mf
+  if (ret.x) 
+    z$x <- x
+  if (ret.y) 
+    z$y <- y
+  if (!qr) 
+    z$qr <- NULL
+  #7
+  node7 = mem_used()
+  cat("7: the rest of steps", (node7-node6)/1000000, "MB", "\n")
+  z
+}
+ret = lm_my(y~x1+x2+x3)
+@
+\noindent \textbf{c)}\\
+In this part, I revise the lm function by deleting unecessary attributes in x and y. Like in object x, it is the "dimnames". It looks like a minor change, while make a big difference. \\
+<<>>==
+lm_revised<-function (formula, data, subset, weights, na.action, method = "qr", 
+                 model = TRUE, x = FALSE, y = FALSE, qr = TRUE, singular.ok = TRUE, 
+                 contrasts = NULL, offset, ...) 
+{
+  #1
+  very_beginning = mem_used()
+  cat("1:Memory used at the beginning of the function"
+      , very_beginning/1000000, "MB","\n")
+  
+  ret.x <- x
+  ret.y <- y
+  #2
+  node2 = mem_used()
+  cat("2:", (node2-very_beginning)/1000000, "MB","\n")
+  
+  cl <- match.call()
+  mf <- match.call(expand.dots = FALSE)
+  m <- match(c("formula", "data", "subset", "weights", "na.action", 
+               "offset"), names(mf), 0L)
+  mf <- mf[c(1L, m)]
+  mf$drop.unused.levels <- TRUE
+  mf[[1L]] <- quote(stats::model.frame)
+  mf <- eval(mf, parent.frame())
+  
+  cat("mf_size:", object_size(mf)/1000000, "MB", "\n") 
+  #get the obj_size of mf
+
+  #3
+  node3 = mem_used()
+  cat("3: memory used after creation of several objs:"
+      ,(node3-node2)/1000000, "MB", "\n")
+  
+  if (method == "model.frame") 
+    return(mf)
+  else if (method != "qr") 
+    warning(gettextf("method = '%s' is not supported. Using 'qr'", 
+                     method), domain = NA)
+  
+  #4
+  node4 = mem_used()
+  #print("4:"); print(node4);print(node4-node3)
+  print("check 4--5")
+  mt <- attr(mf, "terms"); #print(object_size(mt))
+  y <- model.response(mf, "numeric")
+  attributes(y)$names =NULL
+  cat("y size:",object_size(y)/1000000, "MB", "\n")
+  print("get more info of y to diagnose:")
+  print(head(.Internal(inspect(y))))
+  w <- as.vector(model.weights(mf)); #print(object_size(w))
+  
+  #5
+  node5 = mem_used()
+  cat("5: after the creating of mt, y, w objects:"
+      , (node5-node4)/1000000, "MB", "\n")
+  
+  if (!is.null(w) && !is.numeric(w)) 
+    stop("'weights' must be a numeric vector")
+  offset <- as.vector(model.offset(mf))
+  
+  
+  if (!is.null(offset)) {
+    if (length(offset) != NROW(y)) 
+      stop(gettextf(
+        "number of offsets is %d, should equal %d (number of observations)", 
+                    length(offset), NROW(y)), domain = NA)
+  }
+  if (is.empty.model(mt)) {
+    x <- NULL
+    z <- list(
+      coefficients = if (is.matrix(y)) matrix(, 0, 3) 
+      else numeric(), residuals = y, fitted.values = 0 * y
+      ,weights = w, rank = 0L, df.residual = if (!is.null(w)) sum(w != 0) 
+      else if (is.matrix(y)) nrow(y) 
+      else length(y))
+    
+    if (!is.null(offset)) {
+      z$fitted.values <- offset
+      z$residuals <- y - offset
+    }
+    #print(head(.Internal(inspect(z))))
+  }
+  else {
+    #5.1
+    
+    x <- model.matrix(mt, mf, contrasts)
+    attributes(x)$dimnames=NULL
+    node5.1 = mem_used()
+    cat("5.1: the memory usage for creating object x"
+        ,(node5.1-node5)/1000000, "MB", "\n")
+    cat("x size:",object_size(x)/1000000, "MB", "\n")
+  
+    #
+    print("get more info of x to diagnose:")
+    print(head(.Internal(inspect(x))))
+    cat("Memory usage before fitting model"
+        ,(node5.1-very_beginning)/1000000, "MB", "\n")
+    z <- if (is.null(w)) {
+      #mem_fit = mem_used()
+      lm.fit(x, y, offset = offset, singular.ok = singular.ok, 
+             ...)
+      #mem_fit <- mem_used()
+    }
+    else lm.wfit(x, y, w, offset = offset, singular.ok = singular.ok, 
+                 ...)
+    print("PART A: after fitting model and creating z")
+    cat("z size:",object_size(z)/1000000,"MB","\n")
+    cat("memory used for creating z:"
+        ,(mem_used()-node5.1)/1000000, "MB", "\n")
+  }
+  #6
+  node6 = mem_used()
+  cat("6: after fit the model"
+      ,(node6-node5)/1000000,"MB","\n")
+  
+  class(z) <- c(if (is.matrix(y)) "mlm", "lm")
+  z$na.action <- attr(mf, "na.action")
+  z$offset <- offset
+  z$contrasts <- attr(x, "contrasts")
+  z$xlevels <- .getXlevels(mt, mf)
+  z$call <- cl
+  z$terms <- mt
+  if (model) 
+    z$model <- mf
+  if (ret.x) 
+    z$x <- x
+  if (ret.y) 
+    z$y <- y
+  if (!qr) 
+    z$qr <- NULL
+  #7
+  node7 = mem_used()
+  cat("7: the rest of steps"
+      , (node7-node6)/1000000, "MB", "\n")
+  z
+}
+ret = lm_revised(y~x1+x2+x3)
+@
+Now, let's compare the usage of memory before and after revising the function.\\
+\begin{center}
+  \begin{tabular}{ l | c | r }
+    \hline
+    stage & lm\_ my & lm\_ revised \\ \hline
+    size of y & 64 MB & 8 MB \\ \hline
+    size of x & 88 MB & 32 MB \\ \hline
+    size of z & 136 MB & 64 MB \\ \hline
+    memory usage for creating z & 80 MB & 64 MB \\ \hline
+    memory usage before fitting model & 156 MB & 72 MB \\
+    \hline
+  \end{tabular}
+\end{center}
+From the table above, we can find the memory usage is highly saved by revise the lm function.\\
+\end{document}

@@ -1,0 +1,167 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\title{STAT243: PS 5}
+\author{Xinyue Zhou}
+\begin{document}
+
+\maketitle
+\noindent \textbf{1.}\\
+\noindent \textbf{a)}
+
+I expect a 15 digits accuracy after the decimal point, Since the machine epsilon is around $10^{-16}$.
+<<>>=
+.Machine$double.eps
+options(digits = 22)
+1+1e-12
+@
+
+\noindent \textbf{b)}
+
+It do give the answer around $1+10^{-12}$, but is as less accurate as directly calculation in part (a). It's also 16-digit accuracy (15 after decimal points).
+<<>>=
+x = c(1,rep(1e-16,10000))
+sum(x)
+@
+
+\noindent \textbf{c)}
+
+In this part, before I do the summation, I substitude the first element of the vector {\em vec} to be 1. It gave me almost the same answer in part b).
+<<engine='python', eval=TRUE>>=
+import numpy as np
+import decimal as dl
+vec = np.array([1e-16]*(10001))
+vec[0]= 1
+vec.sum()
+@
+The result: 1.0000000000009985
+
+\noindent \textbf{d)}
+
+If 1 is the first element of vector during the summation, then I found the result is extremely inaccurate:\\
+<<>>=
+x = c(1,rep(1e-16,10000))
+ret = 0 
+for (i in 1: length(x)){
+  ret=ret+ x[i]
+}
+ret
+@
+
+Put 1 as the last element. Redo b) all of this in a loop. This gave the exact the right answer as the computer store of $1+10^{-12}$.
+<<>>=
+ret = 0 
+for (i in 2: length(x)){
+  ret=ret+ x[i]
+}
+ret +1
+@
+Redo it in python:
+
+When 1 is the first element:
+<<engine='python', eval = TRUE>>=
+import numpy as np
+import decimal as dl
+ret = 0 
+vec = np.array([1e-16]*(10001))
+vec[0] = 1
+for xx in vec:
+  ret = ret + xx
+dl.Decimal(ret)
+@
+The result:  Out[65]: Decimal('1').
+
+The number has been round to 1, which is not accurate.
+
+
+<<engine='python', eval = TRUE>>=
+import numpy as np
+import decimal as dl
+ret = 0 
+vec = np.array([1e-16]*(10001))
+vec[len(vec)-1] = 1
+for xx in vec:
+  ret = ret + xx
+dl.Decimal(ret)
+@
+Result: Decimal('1.0000000000010000889005823410116136074066162109375')
+
+This gave the right answer as shown in part a).\\
+\\
+
+\noindent \textbf{e) and f)}
+
+No, the function {\em sum()} is not just to sum the vector from its left to right, or apply sum on vector will give the exactly same result in for loop in part d). However, it doesn't. When the element 1 is on the left, instead of 1, the sum gives a more accurate number 1.000000000000999644811.
+
+I have find out the C source code online at https://github.com/wch/r-source/blob/trunk/src/main/summary.c about sum() function. Here is part of it (I just truncate the part for real number):
+<<engine='c',eval =FALSE>>=
+case REALSXP:
+  	    if(ans_type == INTSXP) {
+			ans_type = REALSXP;
+			if(!empty) zcum.r = Int2Real(icum);
+		    }
+		    updated = rsum(REAL(a), XLENGTH(a), &tmp, narm);
+		    if(updated) {
+			zcum.r += tmp;
+		    }
+		    break;
+@
+Take a look at rsum()
+<<engine='c',eval =FALSE>>=
+static Rboolean rsum(double *x, R_xlen_t n, double *value, Rboolean narm)
+{
+    LDOUBLE s = 0.0;
+    Rboolean updated = FALSE;
+
+    for (R_xlen_t i = 0; i < n; i++) {
+  if (!narm || !ISNAN(x[i])) {
+	    if(!updated) updated = TRUE;
+	    s += x[i];
+	}
+    }
+    if(s > DBL_MAX) *value = R_PosInf;
+    else if (s < -DBL_MAX) *value = R_NegInf;
+    else *value = (double) s;
+
+    return updated;
+}
+@
+I didn't really understand the meaning of the code. But in rsum(), each value of the vector has been compared with maximum positive value in R and minimus negetive value, the value of summation has be adjusted to another number. I think that is why using sum() can have a more accurate result.\\
+\\
+
+\noindent \textbf{2.}
+
+First, I create two objects storing number from 1 to 10000000 in two different types, integer and double. It is shown as below.
+<<>>=
+library(pryr)
+int_vec=1:10000000
+float_vec = seq(1.0,10000000.0, by=1.0)
+c(typeof(int_vec),typeof(float_vec))
+object_size(int_vec)
+object_size(float_vec)
+@
+\indent From the above, I found that the floating type is as twice size as that of integer vector. Next, I will evaluate the speed of calculation of these two types.
+<<>>=
+library(microbenchmark)
+options(digits=4)
+#basic calculation
+#plus on each element
+microbenchmark(int_plus = int_vec+5
+               ,float_plus=float_vec+5)
+microbenchmark(int_mean = mean(int_vec)
+               ,float_mean =mean(float_vec))
+microbenchmark(int_max = max(int_vec)
+               ,float_max =max(float_vec))
+#subseting
+mask = seq.int(1,10000000,2)
+microbenchmark(int_subsetting = int_vec[mask],
+               float_subsetting=float_vec[mask])
+#reverse a vector
+microbenchmark(int_reversing = rev(int_vec)
+               ,float_reversing=rev(float_vec))
+#tranpose a vector
+microbenchmark(int_transposing = t(int_vec)
+               ,float_transposing=t(float_vec))
+@
+\indent From the above operations on vector, I found that almost all the operations on integer is faster than that of floating points type, beside plusing number on each element of the vector. The reason why this special case happened, I think, is because in R the number (5 in my example) is the type of "double" by default. Therefore, the operation between floating points number and integer is slower than that between floating number and floating number.
+
+\end{document}

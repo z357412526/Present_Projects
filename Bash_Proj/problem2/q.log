@@ -1,0 +1,34 @@
+This is TeX, Version 3.14159265 (TeX Live 2015/dev/Debian) (preloaded format=tex 2015.6.20)  8 SEP 2015 23:32
+**grep "\"2005\"" byCountry >> 2005y ###may be some problem here
+(/usr/share/texlive/texmf-dist/tex/latex/tools/q.tex File ignored
+)
+! You can't use `macro parameter character #' in horizontal mode.
+<*> grep "\"2005\"" byCountry >> 2005y #
+                                        ##may be some problem here
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in horizontal mode.
+<*> grep "\"2005\"" byCountry >> 2005y ##
+                                         #may be some problem here
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in horizontal mode.
+<*> grep "\"2005\"" byCountry >> 2005y ###
+                                          may be some problem here
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! Emergency stop.
+<*> ...ountry >> 2005y ###may be some problem here
+                                                  
+*** (job aborted, no legal \end found)
+
+No pages of output.

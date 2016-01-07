@@ -1,0 +1,206 @@
+Afghanistan,31,Area Harvested,2005,Ha,5200.00000,F 
+Afghanistan,41,Yield,2005,Hg/Ha,73076.00000,Fc
+Afghanistan,51,Production Quantity,2005,tonnes,38000.00000,F 
+Albania,31,Area Harvested,2005,Ha,400.00000,F 
+Albania,41,Yield,2005,Hg/Ha,50000.00000,Fc
+Albania,51,Production Quantity,2005,tonnes,2000.00000,F 
+Algeria,31,Area Harvested,2005,Ha,22888.00000,
+Algeria,41,Yield,2005,Hg/Ha,63394.00000,Fc
+Algeria,51,Production Quantity,2005,tonnes,145097.00000,
+Argentina,31,Area Harvested,2005,Ha,2200.00000,F 
+Argentina,41,Yield,2005,Hg/Ha,113636.00000,Fc
+Argentina,51,Production Quantity,2005,tonnes,25000.00000,F 
+Armenia,31,Area Harvested,2005,Ha,5300.00000,
+Armenia,41,Yield,2005,Hg/Ha,28301.00000,Fc
+Armenia,51,Production Quantity,2005,tonnes,15000.00000,
+Australia,31,Area Harvested,2005,Ha,3100.00000,F 
+Australia,41,Yield,2005,Hg/Ha,63541.00000,Fc
+Australia,51,Production Quantity,2005,tonnes,19698.00000,
+Austria,31,Area Harvested,2005,Ha,456.00000,
+Austria,41,Yield,2005,Hg/Ha,287061.00000,Fc
+Austria,51,Production Quantity,2005,tonnes,13090.00000,
+Azerbaijan,31,Area Harvested,2005,Ha,1626.00000,
+Azerbaijan,41,Yield,2005,Hg/Ha,99452.00000,Fc
+Azerbaijan,51,Production Quantity,2005,tonnes,16171.00000,
+Bhutan,51,Production Quantity,2005,tonnes,16.00000,F 
+Bosnia and Herzegovina,31,Area Harvested,2005,Ha,230.00000,F 
+Bosnia and Herzegovina,41,Yield,2005,Hg/Ha,22695.00000,Fc
+Bosnia and Herzegovina,51,Production Quantity,2005,tonnes,522.00000,
+Bulgaria,31,Area Harvested,2005,Ha,7340.00000,
+Bulgaria,41,Yield,2005,Hg/Ha,14470.00000,Fc
+Bulgaria,51,Production Quantity,2005,tonnes,10621.00000,
+Cameroon,31,Area Harvested,2005,Ha,105.00000,F 
+Cameroon,41,Yield,2005,Hg/Ha,44761.00000,Fc
+Cameroon,51,Production Quantity,2005,tonnes,470.00000,F 
+Canada,31,Area Harvested,2005,Ha,164.00000,
+Canada,41,Yield,2005,Hg/Ha,98597.00000,Fc
+Canada,51,Production Quantity,2005,tonnes,1617.00000,
+Chile,31,Area Harvested,2005,Ha,2300.00000,F 
+Chile,41,Yield,2005,Hg/Ha,95652.00000,Fc
+Chile,51,Production Quantity,2005,tonnes,22000.00000,F 
+China,31,Area Harvested,2005,Ha,18573.00000,
+China,41,Yield,2005,Hg/Ha,48961.00000,
+China,51,Production Quantity,2005,tonnes,90937.00000,
+mainland,31,Area Harvested,2005,Ha,11000.00000,
+mainland,41,Yield,2005,Hg/Ha,40909.00000,Fc
+mainland,51,Production Quantity,2005,tonnes,45000.00000,
+Croatia,31,Area Harvested,2005,Ha,400.00000,F 
+Croatia,41,Yield,2005,Hg/Ha,20800.00000,Fc
+Croatia,51,Production Quantity,2005,tonnes,832.00000,
+Cyprus,31,Area Harvested,2005,Ha,289.00000,
+Cyprus,41,Yield,2005,Hg/Ha,59861.00000,Fc
+Cyprus,51,Production Quantity,2005,tonnes,1730.00000,
+Czech Republic,31,Area Harvested,2005,Ha,2365.00000,
+Czech Republic,41,Yield,2005,Hg/Ha,30219.00000,Fc
+Czech Republic,51,Production Quantity,2005,tonnes,7147.00000,
+Ecuador,31,Area Harvested,2005,Ha,78.00000,F 
+Ecuador,41,Yield,2005,Hg/Ha,41025.00000,Fc
+Ecuador,51,Production Quantity,2005,tonnes,320.00000,F 
+Egypt,31,Area Harvested,2005,Ha,7500.00000,F 
+Egypt,41,Yield,2005,Hg/Ha,97333.00000,Fc
+Egypt,51,Production Quantity,2005,tonnes,73000.00000,F 
+France,31,Area Harvested,2005,Ha,13936.00000,
+France,41,Yield,2005,Hg/Ha,126973.00000,Fc
+France,51,Production Quantity,2005,tonnes,176950.00000,
+Georgia,31,Area Harvested,2005,Ha,1500.00000,F 
+Georgia,41,Yield,2005,Hg/Ha,9926.00000,Fc
+Georgia,51,Production Quantity,2005,tonnes,1489.00000,
+Germany,31,Area Harvested,2005,Ha,53.00000,
+Germany,41,Yield,2005,Hg/Ha,40754.00000,Fc
+Germany,51,Production Quantity,2005,tonnes,216.00000,
+Greece,31,Area Harvested,2005,Ha,5695.00000,
+Greece,41,Yield,2005,Hg/Ha,147734.00000,Fc
+Greece,51,Production Quantity,2005,tonnes,84135.00000,
+Guadeloupe,51,Production Quantity,2005,tonnes,20.00000,F 
+Hungary,31,Area Harvested,2005,Ha,5823.00000,
+Hungary,41,Yield,2005,Hg/Ha,44058.00000,Fc
+Hungary,51,Production Quantity,2005,tonnes,25655.00000,
+India,31,Area Harvested,2005,Ha,2400.00000,F 
+India,41,Yield,2005,Hg/Ha,41666.00000,Fc
+India,51,Production Quantity,2005,tonnes,10000.00000,F 
+Islamic Republic of,31,Area Harvested,2005,Ha,49388.00000,
+Islamic Republic of,41,Yield,2005,Hg/Ha,55798.00000,Fc
+Islamic Republic of,51,Production Quantity,2005,tonnes,275578.00000,
+Iraq,31,Area Harvested,2005,Ha,4100.00000,F 
+Iraq,41,Yield,2005,Hg/Ha,59756.00000,Fc
+Iraq,51,Production Quantity,2005,tonnes,24500.00000,F 
+Israel,31,Area Harvested,2005,Ha,2300.00000,F 
+Israel,41,Yield,2005,Hg/Ha,72521.00000,Fc
+Israel,51,Production Quantity,2005,tonnes,16680.00000,
+Italy,31,Area Harvested,2005,Ha,17318.00000,
+Italy,41,Yield,2005,Hg/Ha,134473.00000,Fc
+Italy,51,Production Quantity,2005,tonnes,232882.00000,
+Japan,31,Area Harvested,2005,Ha,17800.00000,
+Japan,41,Yield,2005,Hg/Ha,69101.00000,Fc
+Japan,51,Production Quantity,2005,tonnes,123000.00000,
+Jordan,31,Area Harvested,2005,Ha,775.00000,
+Jordan,41,Yield,2005,Hg/Ha,85238.00000,Fc
+Jordan,51,Production Quantity,2005,tonnes,6606.00000,
+Kazakhstan,31,Area Harvested,2005,Ha,1700.00000,
+Kazakhstan,41,Yield,2005,Hg/Ha,50000.00000,Fc
+Kazakhstan,51,Production Quantity,2005,tonnes,8500.00000,
+Kenya,31,Area Harvested,2005,Ha,10.00000,F 
+Kenya,41,Yield,2005,Hg/Ha,60000.00000,Fc
+Kenya,51,Production Quantity,2005,tonnes,60.00000,F 
+Kyrgyzstan,31,Area Harvested,2005,Ha,7300.00000,
+Kyrgyzstan,41,Yield,2005,Hg/Ha,17808.00000,Fc
+Kyrgyzstan,51,Production Quantity,2005,tonnes,13000.00000,
+Lebanon,31,Area Harvested,2005,Ha,6400.00000,
+Lebanon,41,Yield,2005,Hg/Ha,49687.00000,Fc
+Lebanon,51,Production Quantity,2005,tonnes,31800.00000,
+Libyan Arab Jamahiriya,31,Area Harvested,2005,Ha,3500.00000,F 
+Libyan Arab Jamahiriya,41,Yield,2005,Hg/Ha,50000.00000,Fc
+Libyan Arab Jamahiriya,51,Production Quantity,2005,tonnes,17500.00000,F 
+Madagascar,31,Area Harvested,2005,Ha,130.00000,F 
+Madagascar,41,Yield,2005,Hg/Ha,92307.00000,Fc
+Madagascar,51,Production Quantity,2005,tonnes,1200.00000,F 
+Malta,31,Area Harvested,2005,Ha,4.00000,F 
+Malta,41,Yield,2005,Hg/Ha,107500.00000,Fc
+Malta,51,Production Quantity,2005,tonnes,43.00000,
+Mexico,31,Area Harvested,2005,Ha,284.00000,
+Mexico,41,Yield,2005,Hg/Ha,45704.00000,Fc
+Mexico,51,Production Quantity,2005,tonnes,1298.00000,
+Moldova,31,Area Harvested,2005,Ha,1871.00000,
+Moldova,41,Yield,2005,Hg/Ha,27974.00000,Fc
+Moldova,51,Production Quantity,2005,tonnes,5234.00000,
+Morocco,31,Area Harvested,2005,Ha,12000.00000,
+Morocco,41,Yield,2005,Hg/Ha,86333.00000,Fc
+Morocco,51,Production Quantity,2005,tonnes,103600.00000,
+Nepal,31,Area Harvested,2005,Ha,84.00000,
+Nepal,41,Yield,2005,Hg/Ha,67500.00000,Fc
+Nepal,51,Production Quantity,2005,tonnes,567.00000,
+New Zealand,31,Area Harvested,2005,Ha,487.00000,
+New Zealand,41,Yield,2005,Hg/Ha,75523.00000,Fc
+New Zealand,51,Production Quantity,2005,tonnes,3678.00000,
+Occupied Palestinian Territory,31,Area Harvested,2005,Ha,395.00000,
+Occupied Palestinian Territory,41,Yield,2005,Hg/Ha,25392.00000,Fc
+Occupied Palestinian Territory,51,Production Quantity,2005,tonnes,1003.00000,
+Pakistan,31,Area Harvested,2005,Ha,28884.00000,
+Pakistan,41,Yield,2005,Hg/Ha,68286.00000,Fc
+Pakistan,51,Production Quantity,2005,tonnes,197239.00000,
+Peru,31,Area Harvested,2005,Ha,60.00000,F 
+Peru,41,Yield,2005,Hg/Ha,30000.00000,Fc
+Peru,51,Production Quantity,2005,tonnes,180.00000,F 
+Poland,31,Area Harvested,2005,Ha,1469.00000,
+Poland,41,Yield,2005,Hg/Ha,21497.00000,Fc
+Poland,51,Production Quantity,2005,tonnes,3158.00000,
+Portugal,31,Area Harvested,2005,Ha,566.00000,
+Portugal,41,Yield,2005,Hg/Ha,83162.00000,Fc
+Portugal,51,Production Quantity,2005,tonnes,4707.00000,
+Romania,31,Area Harvested,2005,Ha,4151.00000,
+Romania,41,Yield,2005,Hg/Ha,126258.00000,Fc
+Romania,51,Production Quantity,2005,tonnes,52410.00000,
+Russian Federation,31,Area Harvested,2005,Ha,19000.00000,
+Russian Federation,41,Yield,2005,Hg/Ha,37894.00000,Fc
+Russian Federation,51,Production Quantity,2005,tonnes,72000.00000,
+Serbia and Montenegro,31,Area Harvested,2005,Ha,2300.00000,F 
+Serbia and Montenegro,41,Yield,2005,Hg/Ha,59273.00000,Fc
+Serbia and Montenegro,51,Production Quantity,2005,tonnes,13633.00000,
+Slovakia,31,Area Harvested,2005,Ha,228.00000,
+Slovakia,41,Yield,2005,Hg/Ha,43859.00000,Fc
+Slovakia,51,Production Quantity,2005,tonnes,1000.00000,
+Slovenia,31,Area Harvested,2005,Ha,31.00000,
+Slovenia,41,Yield,2005,Hg/Ha,120322.00000,Fc
+Slovenia,51,Production Quantity,2005,tonnes,373.00000,
+South Africa,31,Area Harvested,2005,Ha,4533.00000,
+South Africa,41,Yield,2005,Hg/Ha,96377.00000,Fc
+South Africa,51,Production Quantity,2005,tonnes,43688.00000,
+Spain,31,Area Harvested,2005,Ha,19249.00000,
+Spain,41,Yield,2005,Hg/Ha,71259.00000,Fc
+Spain,51,Production Quantity,2005,tonnes,137167.00000,
+Switzerland,31,Area Harvested,2005,Ha,602.00000,
+Switzerland,41,Yield,2005,Hg/Ha,85730.00000,Fc
+Switzerland,51,Production Quantity,2005,tonnes,5161.00000,
+Syrian Arab Republic,31,Area Harvested,2005,Ha,13330.00000,
+Syrian Arab Republic,41,Yield,2005,Hg/Ha,49147.00000,Fc
+Syrian Arab Republic,51,Production Quantity,2005,tonnes,65513.00000,
+Tajikistan,31,Area Harvested,2005,Ha,8200.00000,
+Tajikistan,41,Yield,2005,Hg/Ha,15000.00000,Fc
+Tajikistan,51,Production Quantity,2005,tonnes,12300.00000,
+The former Yugoslav Republic of Macedonia,31,Area Harvested,2005,Ha,350.00000,F 
+The former Yugoslav Republic of Macedonia,41,Yield,2005,Hg/Ha,84685.00000,Fc
+The former Yugoslav Republic of Macedonia,51,Production Quantity,2005,tonnes,2964.00000,
+Tunisia,31,Area Harvested,2005,Ha,8850.00000,
+Tunisia,41,Yield,2005,Hg/Ha,29378.00000,Fc
+Tunisia,51,Production Quantity,2005,tonnes,26000.00000,
+Turkey,31,Area Harvested,2005,Ha,60000.00000,
+Turkey,41,Yield,2005,Hg/Ha,143333.00000,Fc
+Turkey,51,Production Quantity,2005,tonnes,860000.00000,
+Turkmenistan,31,Area Harvested,2005,Ha,5500.00000,F 
+Turkmenistan,41,Yield,2005,Hg/Ha,38181.00000,Fc
+Turkmenistan,51,Production Quantity,2005,tonnes,21000.00000,F 
+Ukraine,31,Area Harvested,2005,Ha,9900.00000,
+Ukraine,41,Yield,2005,Hg/Ha,95151.00000,Fc
+Ukraine,51,Production Quantity,2005,tonnes,94200.00000,
+United States of America,31,Area Harvested,2005,Ha,6410.00000,
+United States of America,41,Yield,2005,Hg/Ha,115553.00000,Fc
+United States of America,51,Production Quantity,2005,tonnes,74070.00000,
+Uzbekistan,31,Area Harvested,2005,Ha,28000.00000,
+Uzbekistan,41,Yield,2005,Hg/Ha,60714.00000,Fc
+Uzbekistan,51,Production Quantity,2005,tonnes,170000.00000,
+Yemen,31,Area Harvested,2005,Ha,3600.00000,F 
+Yemen,41,Yield,2005,Hg/Ha,18333.00000,Fc
+Yemen,51,Production Quantity,2005,tonnes,6600.00000,F 
+Zimbabwe,31,Area Harvested,2005,Ha,20.00000,F 
+Zimbabwe,41,Yield,2005,Hg/Ha,20000.00000,Fc
+Zimbabwe,51,Production Quantity,2005,tonnes,40.00000,F 

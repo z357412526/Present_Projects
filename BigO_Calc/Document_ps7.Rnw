@@ -1,0 +1,244 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{hyperref}
+\usepackage{graphicx} 
+\usepackage{amsmath} 
+\usepackage{amscd} 
+\usepackage{float} 
+\usepackage{geometry}
+\usepackage{paralist}
+\usepackage{wrapfig}
+\usepackage{framed}
+\usepackage{amsfonts,verbatim}
+\usepackage{listings}
+
+\usepackage[amsmath,amsthm,thmmarks]{ntheorem} 
+\theoremstyle{plain}
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{cly}{Corollary}[section]
+\renewcommand{\qedsymbol}{\blacksquare}
+\renewcommand*{\thethm}{\arabic{thm}}
+\renewcommand*{\thecly}{\arabic{cly}}
+
+\title{PS 7}
+\author{Xinyue Zhou}
+
+
+\begin{document}
+\maketitle
+\section{Question 1}
+Answers for question\#1
+
+1.In the paper, the purpose of the simulation is two-fold: to assess the 
+accuracy of the proposed asymptotic approximation in finite samples and to 
+examine the power of the EM test; Metrics: 1)speed of quickly locating the 
+direction, 2)improvement of penalized likelihood, 3)properties that 
+statistics own.
+
+2.In generating the data for a simulation study, we want to think about what 
+structure real data would have that we want to mimic in the simulation study: 
+distributional assumptions, parameter values, dependence structure, outliers, 
+random effects, sample size (n), etc；“treatment variable”
+
+3.The standard strategy is to discretize the inputs, each into a small number 
+of levels.Alternatively, one an choose "fractional factorial design", if 
+number of inputs and/or levels increases to the point that we can’t carry out 
+the full factorial. Yes, there should happen. One cannot get a idea how high-
+order interactions works on the results even it does matters as one only 
+evaluates the main effects.
+
+4. It is really difficult to uses principles of basic experimental design in 
+real practice. First, efficiency requires a fully understanding of the 
+scenario and the model, while it is often not that case, as we still have 
+many things to evaluate through this simulating study. Reporting of 
+uncertainty is also hard. "Uncertainty" is closely related to "large number 
+of results", which means you should try different designs for doing same thing
+. Even adopt statege like that, no one can promise a fully consideration. 
+Therefore, following the principles is hard.
+
+5. Their figure/tables did a good job in explaining the results. They listed 
+all the results of designs in the research and put them into one table, 
+making the comparison easier. Box plots help to decide precision of using 
+difference iterations and input value, where we can conveniniently choose the 
+desired one. The authors did not address the issue of simulation 
+uncertainty/simulation standard errors. So it is not that convincing.
+
+6. In Table 4, the results the power of the EM test under each alternative 
+model have been presented. The power of the EM test is calculated based on 
+1000 repetitions and the results are summarized in Table 6. From the tables, 
+I found that the larger k and n is, the better of the power of EM's. And the 
+more theta's and sigma's were introduced, the power is more reduced.
+
+7. The article almost follows JASA's guide line of simulation studies. But 
+there is one omited, the estimation accuracy of results. As I talked above, 
+the article does not mention uncertainty/simulation standard errors, which 
+reduces the credibility.
+\section{Question 2}
+\subsection{a}
+I will go through this step by step:\\
+1) $U_{11}=\sqrt{A_{11}}$, \#operation=1;\\
+2)$U_{ij}= A_{1j}/U_{11}$, \#operation = n;\\
+3) For $i= 2,\dots,n$ \#operation = n-1
+
+    \indent $U_{ii}= \sqrt{A_{ii}-\Sigma_{k=1}^{i-1}U_{ki}^2}$ \#operation=i-1
+    
+    For $j=i+1,\dots,n$,
+    
+     \indent$U_{ij}=(A_{ij}-\Sigma_{k=1}^{i-1}U_{ki}U_{kj})/U_{ii}$ 
+    \#operation= i-1+1
+    
+    
+Therefore, the number of operation is:
+\begin{align*}
+1+n+\Sigma^n_{i=2}((i-1)+(n-i)(i-1+1))&= 1+n+\Sigma^n_{i=2}(i-1+(n-i)i)\\
+&=1+n+\Sigma^{n-1}_{i=1}i+n\times \Sigma^n_{i=2}i-\Sigma^n_{i=2}i^2\\
+&=1+n+\frac{n(n-1)}{2}+n\times \frac{(n+2)(n-1)}{2}-\left(\frac{n(n+1)(2n+1)}{6}-1\right)\\
+&=\frac{n^3+3n^2-4n}{6}
+\end{align*}
+
+\subsection{b}
+Yes, we can. From Cholesky algorithm above, I found that one do not need to look back to elements before the current one in matrix \textbf{X} to go on the procedure. Therefore, I could overwrite upper triangle of matrix \textbf{X} to save the storage.
+
+\subsection{c}
+We can generate the correlation matrix (positive-definite, symmetric), as following. Then see the memory of having this matix.
+<<eval=TRUE,warning=FALSE,results='hide'>>=
+require(pryr)
+require(fields)
+@
+
+<<eval=TRUE>>=
+n= 300
+locs <- runif(n)
+rho <- .1
+X <- exp(-rdist(locs)^2/rho^2)
+mem_change(XX<-chol(X,pivot=TRUE))
+@
+Creat an 300$\times$300 matrix originally need 703.3kB memory, while in our case, 716 kB it costs. Therefore, volating the expectation, it does not overwrite on matrix \textbf{X}.
+
+For different n's:
+<<eval=TRUE,warning=FALSE>>=
+ns = seq(10,1000,by=10)
+time=NULL
+mmr=NULL
+for (i in ns){
+  locs <- runif(i)
+  rho <- .1
+  X <- exp(-rdist(locs)^2/rho^2)
+  
+  t1 = proc.time()[1]
+  mem1= mem_used()
+  U<-chol(X,pivot=TRUE)
+  mem2=mem_used()
+  t2=proc.time()[1]
+  mmr=c(mmr,mem2-mem1)
+  time=c(time,t2-t1)
+}
+#plot 
+mmr[1]=0
+par(mfrow=c(1,2))
+plot(ns,mmr,type="l",col="red",xlab="size",
+     ylab="memory",main="Memory Used with Increasing Size")
+plot(ns,time,type="l",col="blue",xlab="size",
+     ylab="time",main="Time Used with Increasing Size")
+@
+See the plot above. The memory increases linearly with the size of the matrix. Time used is not linearly correlated with size at first glance, but has a upward trend. It happens as we have random step in function, and the sizes are not that different, which caused a big uncertainty in evaluate time. If I chose a larger space between size when plotting, it would give a generally linear trend.
+
+\section{Question 3}
+\subsection{a}
+Generate a 5000$\times$5000 matrix as the method below. Use three methods to solve the linear system. Time is shown below:
+<<eval=TRUE, warning=FALSE>>=
+set.seed(0)
+n=5000
+system.time(X<- crossprod(matrix(rnorm(n^2), n)))
+
+b<- rnorm(n)
+y <-X%*%b
+system.time(sc1<-solve(X)%*%y)
+system.time(sc2<-solve(X,y))
+
+chol_solve<- function(X,y){
+  U <- chol(X)
+  sc3<-backsolve(U,backsolve(U, y, transpose = TRUE))
+  return(sc3)
+}
+system.time(sc3<-chol_solve(X,y))
+@
+The time used is almost consistent with the order of efficiency of these three methods we learnt in class. The computational complexity of \textit{solve()},\textit{solve(X,b), LU decomposition},\textit{Cholsky decomposition} are $n^3$,$n^3/3$,$n^3/6$. In practice, we can see a big improvement using different methods. However, the ratio of efficiency is not strictly 6:2:1, which may caused by other terms like $n^2$ or even $n$.
+
+\subsection{b}
+Then we focus on the machine precision:
+<<eval=TRUE>>=
+err1 <- norm(b - sc1, type="2") /norm(b,type="2")
+err2 <- norm(b - sc2, type="2") /norm(b,type="2")
+err3 <- norm(b - sc3, type="2") /norm(b,type="2")
+c(err1,err2,err3)
+
+X_eigen <- eigen(X)
+max(abs(X_eigen$values)) / min(abs(X_eigen$values))
+@
+From the calculation above, I found the $cond(X)=40290489\approx 4\times 10^7$, so theortically, we lost 7-digits precision. From the formula $\frac{\left\Vert\delta b\right\Vert}{\left\Vert b\right\Vert} \approx cond(X) \times 10^{-p}$, in which p=16. My result agrees with this formula.
+
+\section{Question 4}
+First write the pseudo-code and explain the efficiency:
+\begin{align}
+S,\Lambda &= EigenDecomposition (\Sigma)\\
+\tilde{X} &= S^T\times X\\
+X_{new} & = \tilde{X}^T\Lambda^{-1} \tilde{X}\\ \notag
+ &= crossprod(\tilde{X},\Lambda^{-1}\tilde{X})\\
+\tilde{Y} &= S^T\times Y\\
+Y_{new} & = \tilde{X}^T \Lambda^{-1} \tilde{Y} \\ \notag
+&= crossprod(\tilde{X},\Lambda^{-1}\tilde{Y})\\
+U &= chol(X_{new})\\
+\hat{\beta} &= backsolve(U, backsolve(U, Y_{new}, transpose=TRUE))
+\end{align}
+
+Evaluate time step by step:
+\begin{itemize}
+  \item (1) $n^3$
+  \item (2) $np+pn^2$
+  \item (3) $2np+p^2n$
+  \item (4) $n^2+n$
+  \item (5) $np+n$
+  \item (6) $n^3/6+n^2/2-2n/3$
+  \item (7) $n^2-n$
+\end{itemize}
+Therefore, $\Sigma Time_{i}=\frac{7}{6}n^3+(p+\frac{5}{2})n^2+(4p+p^2-\frac{1}{2})n$
+
+<<eval=FALSE>>=
+Gls<-function(X,Y,Sigma){
+  d_sigma = eigen(sigma)
+  e_values = d_sigma$values
+  e_vecs = d_sigma$vectors
+  tl_x = crossprod(e_vecs, X)
+  x_new = crossprod(tl_x, tl_x/e_values)
+  tl_y = crossprod(e_vecs, Y)
+  y_new = crossprod(tl_x, y/e_values)
+  U = chol(x_new,pivot = TRUE)
+  beta_est = backsolve(U, backsolve(U, y_new, transpose=TRUE))
+  return(beta_est)
+}
+@
+
+\section{Question 5}
+\subsection{a}
+The n$\times$m rectangular matrix \textbf{X} can be decomposed as following:
+\begin{equation}
+  X = U_{n\times k}D_{k\times k}V^T_{k\times m} \\
+  \text{   (in which, $U^TU=V^TV=I_k$)}
+\end{equation}
+Then, it is easy to verify that:
+\begin{align*}
+X^TX = VD^TU^T\times UDV^T &= VD^TDV^T = V\Lambda V^T\\
+X^TXV &= V\Lambda \text{  (where $\Lambda$ is diagonal matrix)}
+\end{align*}
+Seeing the formula above, it is easy to figure out that diagonal of $\Lambda$ are eigenvalues of $X^TX$, and corresponding colunms in $V$ are eigenvectors. So the eigenvalues of $X^TX$ are the square of singular values of X. And from the formula, $X^TX$ is also semi-positive definite.
+\subsection{b}
+Assume we have found that $X=Q\Lambda Q^T$, therefore"
+\begin{align*}
+det\left( X-\lambda_i I\right) = 0 \Rightarrow\\
+det\left( X+cI-(\lambda_i+c) I\right) = 0 \Rightarrow\\
+det\left( Z-(\lambda_i+c) I\right) = 0
+\end{align*}
+Therefore, Z can be decomposed as $X=Q(\Lambda+cI) Q^T$
+
+\end{document}

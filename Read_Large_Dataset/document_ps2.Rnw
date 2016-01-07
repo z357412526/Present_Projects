@@ -1,0 +1,202 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\title{STAT243: PS 2}
+\author{Xinyue Zhou}
+\begin{document}
+\maketitle
+\noindent \textbf{1.}\\
+\noindent \textbf{a) Reading in using read.csv()}\\
+\noindent \textbf{step0: Get a general idea of out data set}
+<<engine='bash',eval=FALSE>>=
+cd /Users/Xinyue_star/src/stat243/ps2
+wget www.stat.berkeley.edu/share/paciorek/ss13hus.csv.bz2
+bzcat ss13hus.csv.bz2.1 |wc -l
+@
+
+There are 7219001 obs in total. For convenience, so I decided to read 72190 obs in each chunk. And for the first obs, I just use it to select the column. \\
+\noindent \textbf{step1: Make the connection}
+\indent 
+<<>>=
+con = file("/Users/Xinyue_star/src/stat243/ps2/ss13hus.csv.bz2.1", "r")
+@
+\noindent \textbf{step2: Write some helper functions}\\
+\noindent Helper function 1: Select columns\\
+Extract the first line for selecting. If any element in firstline matchs target, it returns a "TRUE" in corresponding position in vector judge. And finally this function returns a logical vector with 205 elements. 13 of them are TRUE.
+<<>>=
+selColTF = function(target,con){
+  firstline = read.csv(con, nrows=1)
+  judge = is.element(colnames(firstline), target)
+  return(judge)
+}
+@
+\noindent Helper function 2: select columns (this one is using in Part b)\\
+A further step for select columns. It's a helper function for buildChunks. This function can returns to a "numeric" "NULL" vector, which can help buildChunks() to skip the colunms we don't want.
+<<>>=
+selCol = function(target,con){
+  judge = selColTF(target,con)
+  filterit = character(length(judge))
+  for (i in 1:length(judge))
+  {
+    if (judge[i]) filterit[i] = "numeric"
+    else filterit[i] = "NULL" 
+  }
+  return (filterit)
+}
+@
+\noindent Helper function 3: Sample rows, get logical val of sampled index\\
+Notice we set.seed() here in convenience for comparing difference method. In practice, this line should be delete to promise a randomized dataset.
+<<>>=
+sampleInd = function(pop, numSam){
+  set.seed(0) 
+  mysample=sample(1:pop, numSam)
+  sampleindex=is.element(c(1:pop), mysample) 
+  return (sampleindex)
+}
+@
+\noindent Helper function 4: Main function of building a Chunks\\
+The for loop is to read the data chunk by chunk to our empty dataset. colClass is the option to skip the colunm which signified as "NULL".
+<<>>=
+buildChunks = function(blockSize, pop, numSam,target){
+  sampleindex = sampleInd(pop, numSam)
+  filterit = selCol(target, con)
+  mydata = data.frame(matrix(NA, nrow = numSam, ncol=length(target)))
+  lines=1
+  sta = 1
+  for(i in 1:ceiling(pop/blockSize)){
+    end =sta + sum(sampleindex[lines:min(pop, (lines+blockSize-1))])-1 
+    if (end>sta){
+      mydata[sta:end,] = read.csv(
+        con, nrow = blockSize, colClasses = filterit)[
+          sampleindex[lines:min(pop, (lines+blockSize-1))],]
+    }
+    sta = end+1
+    lines = lines + blockSize
+  }
+  colnames(mydata) = target
+  return (mydata)
+}
+@
+\noindent \textbf{step3: Make the connection}\\
+Run the main function to get our dataset. I use system.time() to find of the computing time of the function.
+<<eval=TRUE>>=
+target = c("ST", "NP", "BDSP", "BLD", 
+           "RMSP", "TEN", "FINCP","FPARC", "HHL", "NOC", "MV", "VEH", "YBL")
+blockSize = 72190
+nLines = 7219001
+numSam = 10000
+system.time(mydataCSV <- buildChunks(blockSize,nLines, numSam,target))
+close(con)
+@
+
+\noindent \textbf{b) Reading in using read.Lines()\\}
+Following the same way in a), we can get judge vector to select column, and we have sampleindex to select rows randomly.
+<<>>=
+buildChunksRL= function(blockSize, pop, numSam,target){
+  judge = selColTF(target,con)
+  sampleindex = sampleInd(pop, numSam)
+  mydataRL = data.frame(matrix(NA, nrow = numSam, ncol=length(target)))
+  STA = 1
+  lines = 1
+  for(i in 1:ceiling(pop / blockSize)){
+    END  = STA + sum(sampleindex[lines:min(pop, (lines+blockSize-1))])-1 
+    if (END>=STA){
+      mydata2 = readLines(con, n = blockSize)[sampleindex[lines:min(pop,lines+blockSize-1)]]
+      mydata2.1 = str_split(mydata2,",")
+      mydata2.2 = matrix(unlist(mydata2.1), byrow = TRUE, ncol=length(judge))[,judge]
+      mydataRL[STA:END,] = mydata2.2
+    }
+    STA = END+1
+    lines = lines +blockSize
+  }
+  mydataRL = data.frame(data.matrix(mydataRL))
+  return(mydataRL)
+}
+@
+Then run the buildChunksRL() using the exactly same parameters:blockSize, nLines, numSam,target. Evaluate the time as well.
+<<eval=TRUE>>=
+require(stringr)
+con = file("/Users/Xinyue_star/src/stat243/ps2/ss13hus.csv.bz2.1", "r")
+target = c("ST", "NP", "BDSP", "BLD", 
+           "RMSP", "TEN", "FINCP","FPARC", "HHL", "NOC", "MV", "VEH", "YBL")
+blockSize = 72190
+nLines = 7219001
+numSam = 10000
+system.time(mydataRL <- buildChunksRL(blockSize, nLines, numSam,target))
+close(con)
+@
+Notice that the time of using read.Lines() to read in is a little bit less than using read.csv.
+
+\noindent \textbf{c) Do some preprocessing using bash before read.csv()\\}
+First of all, I used R to select the index of column I want to select, and write this into a txt file.
+<<eval=TRUE>>=
+con = file("/Users/Xinyue_star/src/stat243/ps2/ss13hus.csv.bz2.1", "r")
+target = c("ST", "NP", "BDSP", "BLD", 
+           "RMSP", "TEN", "FINCP","FPARC", "HHL", "NOC", "MV", "VEH", "YBL")
+judge = selColTF(target,con)
+indx = which(judge =="TRUE")
+write(indx,file = "/Users/Xinyue_star/src/stat243/ps2/preprocessing.txt"
+      ,ncolumns=length(target), sep=",")
+close(con)
+@
+Then use the bash to filter the column required. Then we get a 257MB txt file, with 13 columns needed.
+<<engine='bash',eval=FALSE>>=
+cd /Users/Xinyue_star/src/stat243/ps2/
+index = $(cat preprocessing.txt )
+bunzip2 -c ss13hus.csv.bz2.1 |cut -d"," -f$index >>/Users/Xinyue_star/Desktop/stat 243/ps2-R/Prob1/pre_data.txt
+@
+Then I wrote a function to build the dataset chunk by chunk. It is almost the same with buildChunks(), except that there's no need to use colClass= option any more, since we have very neat data with just 13 columns right now.
+<<>>=
+buildChunksPre = function(blockSize, pop, numSam,target){
+  sampleindex = sampleInd(pop,numSam)
+  mydataPre = data.frame(matrix(NA, nrow = numSam, ncol=length(target)))
+  lines=1
+  sta = 1
+  for(i in 1:ceiling(pop/blockSize)){
+    end =sta + sum(sampleindex[lines:min(pop, (lines+blockSize-1))])-1 
+    if (end>sta){
+      mydataPre[sta:end,] = 
+        read.csv(con, nrow = blockSize,sep=",")[sampleindex[lines:min(pop, (lines+blockSize-1))],]
+    }
+    sta = end+1
+    lines = lines + blockSize
+  }
+  colnames(mydataPre) = target
+  return(mydataPre)
+}
+@
+Then run the function above using the same parameters. To compare three methods, I deserted the first line.Of course, the runing time was also evaluated.
+<<eval=TRUE>>=
+con = file("pre_data.txt", "r")
+desert = read.csv(con, nrow = 1,sep=",")
+target = c("ST", "NP", "BDSP", "BLD", 
+           "RMSP", "TEN", "FINCP","FPARC", "HHL", "NOC", "MV", "VEH", "YBL")
+blockSize = 72190
+nLines = 7219001
+numSam = 10000
+system.time(mydataPre <- buildChunksPre(blockSize, nLines, numSam,target))
+close(con)
+@
+Notice that the running time of preprocessed data is much less than using read.csv() or read.Lines() directly in R. Therefore, we can conclude that bash is more suitable for preprocessing data.\\
+
+\noindent \textbf{d) Basic analysis\\}
+Since the three datasets I got right now are supposed to be the same. For convenience, I just us the third one to do the basic analysis. First compute a table showing correlation, then construct a plot to see the relationship between variables more intuitively.
+<<eval>>=
+my.cor = cor(mydataPre,use="complete.obs")
+my.cor
+@
+
+<<fig=TRUE,eval=TRUE>>=
+library(lattice)
+#Build the horizontal and vertical axis information
+hor <- target
+ver <- target
+#Build the fake correlation matrix
+nrowcol <- length(ver)
+#Build the plot
+rgb.palette <- colorRampPalette(c("blue", "yellow"), space = "rgb")
+levelplot(my.cor, main="stage 12-14 array correlation matrix",
+          xlab="", ylab="", col.regions=rgb.palette(120), cuts=100, at=seq(-1,1,0.05))
+@
+The graph is straightforward. Yellow represent positive correlated, like the diagonal, which are all 1's. Blue shows the negative correlation, like NP and NOC.
+
+\end{document}

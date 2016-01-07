@@ -1,0 +1,99 @@
+#PROBLEM 1 
+##please go to the problem1 directory
+##download and rename
+wget -O datafile2 "http://data.un.org/Handlers/DownloadHandler.ashx?DataFilter=itemCode:526&DataMartId=FAO&Format=csv&c=2,3,4,5,6,7&s=countryName:asc,elementCode:asc,year:desc"
+
+##unzip file and rename
+unzip -p datafile2 > mydata2.csv
+
+#1
+##get a general idea about the data
+regions=$(cut -d"," -f1 mydata2.csv|sort |uniq )
+echo $region
+##then we find out that there are two categories in the variable "regions". They are country names and the regions of the countries, and the second ones are always followed by a '+'". At the same time, we noticed some special information
+
+##separate files
+grep "+" mydata2.csv > byregion.txt   ##region data in byregion.txt
+grep -v "+" mydata2.csv > byCountry.txt  ##country data in byCountry.txt 
+grep "\"2005\"" byCountry.txt > 2005y.txt ##subset country to year 2005
+
+##get rid of comma in the first field, and then delete quotation marks
+sed -e 's/China, //g' 2005y.txt | sed -e 's/Iran, //g' |sed -e 's/"//g' >AH2005.txt
+
+grep "Area Harvested" AH2005.txt | sort -t',' -k6 -n -r| head -5 >final_2005.txt
+cut -d"," -f1 final_2005.txt
+
+##do the same thing for data in 1965, 1975, 1985, 1995, and 2005
+sed -e 's/China, //g' byCountry.txt | sed -e 's/Iran, //g' >byCountry2.txt
+years=(\"1965\" \"1975\" \"1985\" \"1995\" \"2005\")
+for ((i=0; i <5;i++));
+do
+	grep "${years[$i]}" byCountry2.txt > ${years[$i]}y.txt
+	grep "Area Harvested" ${years[$i]}y.txt | sed -e 's/"//g' | sort -t',' -k6 -n -r| head -5 >final${years[$i]}.txt
+	echo "Top 5 in ${years[$i]}" >>results1.txt
+	cut -d"," -f1 final${years[$i]}.txt >>results1.txt
+	rm ${years[$i]}y.txt final${years[$i]}.txt
+	echo "----------------------------" >>results1.txt
+done
+##The result is stored in result1.txt
+
+
+#2 write a funciton
+downloadData() {
+   wget -O $1data "http://data.un.org/Handlers/DownloadHandler.ashx?DataFilter=itemCode:$1&DataMartId=FAO&Format=csv&c=2,3,4,5,6,7&s=countryName:asc,elementCode:asc,year:desc"
+   unzip -p $1data
+}
+	
+#3
+R
+URL = "http://faostat.fao.org/site/384/default.aspx"
+require(curl)
+require(XML)
+html = readLines(curl(URL))
+tbls = readHTMLTable(html)
+sapply(tbls, nrow)
+##find table 1, 8, 10 may be possible. And finally decide that 10th is what we need 
+temp3 = readHTMLTable(html, which=10)
+temp4=temp3[,c(2,4)]
+write.csv(temp4,file="match.txt")
+
+downloadName() {
+    thecode=$(grep "$1" match.txt | cut -d"," -f2,3 | uniq |cut -d"," -f1 | sed -e 's/"//g')
+   	wget -O $(thecode)data "http://data.un.org/Handlers/DownloadHandler.ashx?DataFilter=itemCode:$(thecode)&DataMartId=FAO&Format=csv&c=2,3,4,5,6,7&s=countryName:asc, elementCode:asc,year:desc"
+   unzip -p ${thecode}data
+}
+
+
+#Problem 2
+##please go to problem2 directory
+##solve it using bash
+lynx --dump //http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ | awk '/http/{print $2}' | grep txt  >> links2.txt
+for i in $(cat links2.txt )
+do 
+	echo ${i:47}
+ 	wget $i
+done
+
+
+#Problem 3
+##go to problem3 directiory
+R CMD Sweave p3.Rnw
+pdflatex p3.tex 
+#Then we get a pdf called p3.pdf
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
